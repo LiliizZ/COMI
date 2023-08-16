@@ -1,3 +1,3 @@
 # COMI
-main.py
-comi.py 
+We show the code for COMI in ImagetNet-200. 
+# 
