@@ -5,7 +5,7 @@ import torch
 import torch.nn as nn
 from torchvision import transforms
 from argments import parser
-from res50_dis import ResNet50
+from comi import ResNet50
 import logging
 import os
 import cv2
