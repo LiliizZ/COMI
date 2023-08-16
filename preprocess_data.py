@@ -15,7 +15,6 @@ logger = logging.getLogger(__file__)
         self.mapping = self.load_mapping(mapping_file)
         self.transform = transform
 
-        # 获取所有图像文件路径和对应的类别标签
         self.image_paths, self.labels = self.get_image_paths_and_labels()
 
     def load_mapping(self, mapping_file):
@@ -59,7 +58,6 @@ logger = logging.getLogger(__file__)
 
 
 
-# 定义自定义数据集类
 class CustomDataset(Dataset):
     def __init__(self, dataset, transform):
         self.dataset = dataset
@@ -88,7 +86,6 @@ class ImageNetData(Dataset):
         self.batch_size = args.batch_size
         self.mapping = self.load_mapping(mapping_file)
 
-        # 获取所有图像文件路径和对应的类别标签
         self.data = self.load_data()
     
     def load_mapping(self, mapping_file):
@@ -120,7 +117,6 @@ class ImageNetData(Dataset):
         
     
 
-# 定义数据加载器
 def get_data_loader(data, batch_size, transform=None, shuffle=False, num_workers=4):
     dataset = CustomDataset(data, transform)
     data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=shuffle, num_workers=num_workers)
