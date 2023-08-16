@@ -6,7 +6,6 @@ import logging
 logger = logging.getLogger(__file__)
 
 
-# 定义 ResNet 模型
 class ResNet50(nn.Module):
     def __init__(self, args, device):
         super(ResNet50, self).__init__()
@@ -16,7 +15,6 @@ class ResNet50(nn.Module):
         self.features = nn.Sequential(*list(self.resnet.children())[:-1])
         self.label_predictor = nn.Linear(args.info_dim, args.num_classes)
         
-        # 添加用于数据标签预测的全连接层
         self.relevant_info_capturer = nn.Linear(self.num_features, args.info_dim)
         self.irrelevant_info_capturer = nn.Linear(self.num_features, args.info_dim)
         self.reconstruction_capturer = nn.Linear(args.info_dim*2, self.num_features)
@@ -55,11 +53,7 @@ class ResNet50(nn.Module):
        
         #texture_outputs = self.texture_capturer(texture_features) 
         #bg_outputs = self.bg_capturer(bg_features) 
-        '''club = CLUB(512, 512, 256)
-        club = club.to(self.device)
-        construction_loss = club.learning_loss(outputs_m, outputs_u)
-        outputs_mm = self.correlated_fc(outputs_m)
-        outputs_uu = self.correlated_fc(outputs_u)'''
+    
         return outputs_m, outputs_u, features, new_features, explain_loss
     
 
@@ -77,15 +71,13 @@ class ResNet50(nn.Module):
         for i in range(m_len):
             x = nor_outputs_m[i,:]
             mean_value = torch.mean(x)
-            # Step 2: 大于平均值的元素进行降低
             reduced_vec = x[x > mean_value]
-            # Step 3: 对向量进行归一化reduced
             #normalized_vec = reduced_vec / torch.norm(reduced_vec)
             margin_loss = reduced_vec - mean_value
             margin_loss = torch.sum(margin_loss).item() / (reduced_vec.size(0) + 1e-10)
 
             margin_loss = margin_loss if margin_loss > 0 else 0.
-            explain_loss += margin_loss ## 768维投影成1维
+            explain_loss += margin_loss 
         explain_loss = explain_loss / (m_len + 1e-10) 
         return explain_loss
 
