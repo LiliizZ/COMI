@@ -21,7 +21,7 @@ def get_logger(filename, verbosity=1, name=None):
     level_dict = {0: logging.DEBUG, 1: logging.INFO, 2: logging.WARNING}
     formatter = logging.Formatter(
         "[%(asctime)s][%(filename)s][line:%(lineno)d][%(levelname)s] %(message)s",
-        datefmt = '%Y-%m-%d  %H:%M:%S %a'    #注意月份和天数不要搞乱了，这里的格式化符与time模块相同
+        datefmt = '%Y-%m-%d  %H:%M:%S %a'   
     )
     logger = logging.getLogger(name)
     logger.setLevel(level_dict[verbosity])
@@ -37,7 +37,7 @@ def get_logger(filename, verbosity=1, name=None):
     return logger
 
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'TRUE'
-'''定义超参数'''
+
 
 def train(model, rank_dataloader, criterion, optimizer, scheduler):
     loss_dict = {}
@@ -72,7 +72,7 @@ def train(model, rank_dataloader, criterion, optimizer, scheduler):
                 id = id.item()
                 loss_dict[t][id] = l.item()
 
-            label_loss = torch.mean(label_loss) # 因为 交叉墒loss设置了 reduction='none'
+            label_loss = torch.mean(label_loss)
             #dis_uniform_loss = torch.mean(torch.sum(torch.softmax(outputs_u, dim=1) * torch.log_softmax(outputs_u, dim=1), dim=1))
             
             probabilities = torch.softmax(outputs_u, dim=1)
@@ -80,7 +80,7 @@ def train(model, rank_dataloader, criterion, optimizer, scheduler):
 
             #dis_mse_loss = nn.MSELoss()(bert_encoding, bert_encoding_new)
             reconstruction_criterion = nn.MSELoss()
-            dis_mse_loss = reconstruction_criterion(new_features, features) ###原来是没mean
+            dis_mse_loss = reconstruction_criterion(new_features, features)
 
             if count % 500 == 0:
                 logger.info(f"label_loss  = {label_loss}")
@@ -132,7 +132,6 @@ def evaluate(model, dataloader):
 
             
     accuracy = 100 * correct / total
-    # 计算精确率、召回率和F1值
     '''cm = torch.zeros(args.num_classes, args.num_classes)
     for p, l in zip(all_predictions, all_labels):
         cm[p, l] += 1
@@ -150,19 +149,14 @@ def evaluate(model, dataloader):
 
         
 def save_pretrained(model, path):
-    # 保存模型，先利用os模块创建文件夹，后利用torch.save()写入模型文件
     os.makedirs(path, exist_ok=True)
     torch.save(model, os.path.join(path, 'model.bin'))
 
-# 定义背景增强函数
 def background_augmentation(image):
-    # 在这里添加背景处理的代码，例如高斯模糊、均值迁移等
     blurred_image = cv2.GaussianBlur(image, (5, 5), 0)
     return blurred_image
 
-# 定义纹理增强函数
 def texture_augmentation(image):
-    # 在这里添加纹理处理的代码，例如随机旋转、缩放、翻转等
     angle = np.random.randint(-30, 30)
     rows, cols, _ = image.shape
     rotation_matrix = cv2.getRotationMatrix2D((cols/2, rows/2), angle, 1)
@@ -177,20 +171,12 @@ def rank_data(dataloader):
     
     model.eval()
     for batch in tqdm(dataloader, desc=f"Ranking"):
-        # tqdm(train_dataloader, desc=f"Training Epoch {epoch}") 会自动执行DataLoader的工作流程，
-        # 想要知道内部如何工作可以在debug时将断点打在 coffate_fn 函数内部，查看数据的处理过程
-
-        # 对batch中的每条tensor类型数据，都执行.to(device)，
-        # 因为模型和数据要在同一个设备上才能运行
         ids, images, labels = batch
         images = images.to(device)
         labels = labels.to(device)
     
         with torch.no_grad():
-            # 模型前向传播，model(inputs)等同于model.forward(inputs)
             outputs, _, _, _, _ = model(images)
-
-            # 计算损失，交叉熵损失计算可参考：https://zhuanlan.zhihu.com/p/159477597
             loss = loss_func(outputs, labels)
             
             
@@ -211,7 +197,7 @@ if __name__ == "__main__":
 
     set_seed(args.seed)
     
-    logger = get_logger('./logs/res50_rd_margin.log')#('./log/res50_dis_rank.log')
+    logger = get_logger('./logs/comi.log')#('./log/res50_dis_rank.log')
     
     logger.info(f"Args:{args}")
 
@@ -219,8 +205,7 @@ if __name__ == "__main__":
     transforms.Resize(224),
     transforms.RandomResizedCrop(224),
     transforms.RandomHorizontalFlip(),
-    # 将图像转换为Tensor
-    transforms.ToTensor(),  # 将图像转换为三通道的张量格式
+    transforms.ToTensor(), 
     transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))
     ])
     
@@ -233,9 +218,9 @@ if __name__ == "__main__":
 
 
     image_r_label_file = "./wnids_r.txt"
-    train_dir = "/share/liliz/imagenet/imagenet-200-train/"           #训练集路径
-    val_dir = "/share/liliz/imagenet/imagenet-200-val/"
-    image_r_dir = "/share/liliz/imagenet/in-r/imagenet-r/"
+    train_dir = "./imagenet/imagenet-200-train/"          
+    val_dir = "./imagenet/imagenet-200-val/"
+    image_r_dir = "./imagenet/in-r/imagenet-r/"
     
     train_IND = ImageNetData(args, image_r_label_file, train_dir) # [[id, image_path, label], ...]
     train_data = train_IND.data #[:1000]
@@ -256,8 +241,8 @@ if __name__ == "__main__":
     logger.info(f"num_batches_image_r: {len(image_r_dataloader)}") 
 
     
-    model = ResNet50(args, device).to(device)#在这里更换你需要训练的模型
-    #summary.summary(model, input_size=(3,224,224), device="cpu")#我们选择图形的出入尺寸为(3,224,224)
+    model = ResNet50(args, device).to(device)
+    #summary.summary(model, input_size=(3,224,224), device="cpu")
 
     criterion = nn.CrossEntropyLoss(reduction='none')
     #optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)#0.001  0.005 0.01 0.0001 0.0005 0.00005
@@ -272,10 +257,9 @@ if __name__ == "__main__":
     scheduler_setting = "warmuplinear"
     
     
-    loss_func = nn.CrossEntropyLoss(reduction='none')  # 使用crossentropy作为损失函数
-    ################################################# 排序
-     ###### 排序
-    
+    loss_func = nn.CrossEntropyLoss(reduction='none') 
+
+    #######CoHa
     logger.info(f"Rank radio: {args.rank_percent}")
     # loss_dict = {n:0 for n in range(1, len(train_data)+1)}
     loss_dict = rank_data(train_dataloader)
@@ -287,7 +271,7 @@ if __name__ == "__main__":
         
     logger.info(f"total-len = {total_len}")
     
-    # reverse=True 按照loss从高到低排序
+    # reverse=True #from high to low
     sort_loss_dict = []
     for i in range(args.num_classes):
         sort_loss_dict.append(sorted(loss_dict[i].items(), key=lambda x: x[1], reverse=True))
@@ -306,7 +290,7 @@ if __name__ == "__main__":
                 rank_train_data[0].append(train_data[item[0]])
             else:
                 rank_train_data[1].append(train_data[item[0]])
-                # logger.info("数据rank不全！")
+                # logger.info("rank not enough！")
     
     
     # del train_dataloader
@@ -323,7 +307,6 @@ if __name__ == "__main__":
     best_acc1 = 0.
     best_epoch1 = 0
     timestamp = time.strftime("%m_%d_%H_%M", time.localtime())
-    # 如果test_flag=True,则加载已保存的模型
 
     for epoch in range(1, args.epoch_num + 1):
         logger.info(f"Epoch {epoch}:")
@@ -334,7 +317,6 @@ if __name__ == "__main__":
         acc_r = evaluate(model, image_r_dataloader)
 
         #####
-        # 按照loss从高到低排序
         '''sort_loss_dict = []
         for i in range(args.num_classes):
             sort_loss_dict.append(sorted(loss_dict[i].items(), key=lambda x: x[1], reverse=True))
