@@ -17,7 +17,7 @@ If you find our work useful for your research, please cite the following paper:
 
 # Overview
 <p align="center" width="80%">
-    <img src="./framework.pdf" style="width: 90%">
+    <img src="/framework.pdf" style="width: 90%">
 </p>
 
 
