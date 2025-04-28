@@ -13,6 +13,7 @@ def parser():
     parser.add_argument('--encoder_type', type=str, default="cls")
     parser.add_argument('--max_length', type=int, default=128)#256
     parser.add_argument('--loss_weight_dis', type=float, default=0.001)
+    parser.add_argument('--loss_weight_dis1', type=float, default=0.0001)
     parser.add_argument('--loss_weight_exp', type=float, default=0.0001)
     parser.add_argument('--rank_percent', type=float, default=0.05)
     parser.add_argument('--train_percent', type=float, default=0.9)
