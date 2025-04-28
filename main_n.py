@@ -178,7 +178,7 @@ def train(rank_dataloader):
                 logger.info(f"dis_mse_loss  = {dis_mse_loss}")
 
             
-            loss = ce_loss_mean + args.loss_weight_dis * dis_mse_loss + args.loss_weight_exp * exp_loss
+            loss = ce_loss_mean + args.loss_weight_dis * dis_mse_loss + args.loss_weight_dis1 * dis_uniform_loss + args.loss_weight_exp * exp_loss
 
             # 
             loss.backward()
